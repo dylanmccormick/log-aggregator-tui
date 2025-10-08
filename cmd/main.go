@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
-	"os"
+	// "os"
+
+	lg "github.com/dylanmccormick/log-aggregator-tui/internal/log"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -15,12 +17,19 @@ func main() {
 	// 1: Start the reader/ aggregator to run as a goroutine... I think
 	// 2: Load the TUI
 
-	m := model{}
-	p := tea.NewProgram(m)
-	if _, err := p.Run(); err != nil {
-		fmt.Printf("Alas, there has been an error: %v", err)
-		os.Exit(1)
+	// m := model{}
+	// p := tea.NewProgram(m)
+	// if _, err := p.Run(); err != nil {
+	// 	fmt.Printf("Alas, there has been an error: %v", err)
+	// 	os.Exit(1)
+	// }
+
+	logMessages := lg.ReadLogFile("../testdata/sample.log")
+	for _, msg := range(logMessages) {
+		fmt.Printf("%#v\n", msg.Level)
 	}
+
+	// os.Exit(0)
 }
 
 func (m model) View() string {

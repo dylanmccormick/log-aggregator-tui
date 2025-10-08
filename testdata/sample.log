@@ -1,0 +1,4 @@
+2023-10-07 14:32:15 INFO [user-service] User login successful: user_id=12345
+2023-10-07 14:32:16 ERROR [database] Connection timeout after 30s: host=db.example.com
+2023-10-07 14:32:17 WARN [cache] Redis connection pool exhausted, falling back to direct DB
+2023-10-07 14:32:18 DEBUG [auth] JWT token validation took 15ms

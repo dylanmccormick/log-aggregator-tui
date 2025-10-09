@@ -24,7 +24,10 @@ func main() {
 	// 	os.Exit(1)
 	// }
 
-	logMessages := lg.ReadLogFile("../testdata/sample.log")
+	logMessages, err := lg.ReadLogFile("../testdata/sample.log")
+	if err != nil {
+		panic(err)
+	}
 	for _, msg := range(logMessages) {
 		fmt.Printf("%#v\n", msg.Level)
 	}

@@ -2,3 +2,17 @@
 2023-10-07 14:32:16 ERROR [database] Connection timeout after 30s: host=db.example.com
 2023-10-07 14:32:17 WARN [cache] Redis connection pool exhausted, falling back to direct DB
 2023-10-07 14:32:18 DEBUG [auth] JWT token validation took 15ms
+
+
+
+// Apache access logs
+"127.0.0.1 - - [07/Oct/2023:14:32:15 +0000] \"GET /api/users HTTP/1.1\" 200 1234"
+
+// Nginx error logs
+"2023/10/07 14:32:15 [error] 1234#0: *5678 connect() failed (111: Connection refused)"
+
+// Syslog format
+"Oct  7 14:32:15 hostname service[1234]: This is a syslog message"
+
+// Docker logs
+"2023-10-07T14:32:15.123456789Z stdout F This is a Docker container log"

@@ -9,7 +9,18 @@ import (
 	"time"
 )
 
-type logMessage struct {
+type LogParser interface {
+	CanParse(line string) bool
+	Parse(line string) (LogMessage, error)
+	Priority() int
+	Name() string
+}
+
+type ParserRegistry struct {
+	Parsers []LogParser
+}
+
+type LogMessage struct {
 	Raw       string
 	Timestamp time.Time
 	Level     string
@@ -17,21 +28,40 @@ type logMessage struct {
 	Component string
 }
 
-func ReadLogFile(filePath string) ([]logMessage, error){
-	var messages []logMessage
+func NewParserRegistry() *ParserRegistry {
+	return &ParserRegistry{
+		[]LogParser{
+			NewStructuredLogParser(),
+		},
+	}
+}
+
+func (pr *ParserRegistry) Parse(line string) (LogMessage, error) {
+	for _, parser := range pr.Parsers {
+		if parser.CanParse(line) {
+			return parser.Parse(line)
+		}
+	}
+	return LogMessage{}, fmt.Errorf("no parser available for the given line format")
+}
+
+func ReadLogFile(filePath string) ([]LogMessage, error) {
+	var messages []LogMessage
 	file, err := os.Open(filePath)
 	if err != nil {
 		slog.Error("Unexpected error with opening file", "filePath", filePath, "error", err)
-		return []logMessage{}, fmt.Errorf("failed to open file%s: %w", filePath, err)
+		return []LogMessage{}, fmt.Errorf("failed to open file%s: %w", filePath, err)
 	}
 	defer file.Close()
 	slog.Info("Reading log file", "filePath", filePath)
+
+	pr := NewParserRegistry()
 
 	scanner := bufio.NewScanner(file)
 	lineNumber := 0
 	for scanner.Scan() {
 		line := scanner.Text()
-		parsedLog, err := parseLog(line)
+		parsedLog, err := pr.Parse(line)
 		if err != nil {
 			slog.Error("Unable to parse log", "LineNumber", lineNumber, "RawLog", line, "error", err)
 			continue
@@ -46,8 +76,8 @@ func ReadLogFile(filePath string) ([]logMessage, error){
 	return messages, nil
 }
 
-func parseLog(msg string) (logMessage, error) {
-	var lm logMessage
+func parseLog(msg string) (LogMessage, error) {
+	var lm LogMessage
 	lm.Raw = msg
 	strings := strings.SplitN(msg, " ", 5)
 	date := strings[0]

@@ -23,8 +23,10 @@ func TestParseLog(t *testing.T) {
 		},
 
 	}
+	pr := NewParserRegistry()
+
 	for i, test := range(tests) {
-		logMsg, err := parseLog(test.input)
+		logMsg, err := pr.Parse(test.input)
 		if err != nil {
 			t.Errorf("failed parsing log message with error: %s. test_no:%d", err, i)
 		}

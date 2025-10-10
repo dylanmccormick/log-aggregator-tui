@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
-	"strings"
+	"regexp"
 	"time"
 )
 
@@ -76,40 +76,48 @@ func ReadLogFile(filePath string) ([]LogMessage, error) {
 	return messages, nil
 }
 
-func parseLog(msg string) (LogMessage, error) {
-	var lm LogMessage
-	lm.Raw = msg
-	strings := strings.SplitN(msg, " ", 5)
-	date := strings[0]
-	t := strings[1]
-	level := strings[2]
-	component := strings[3]
-	message := strings[4]
-
-	layout := "2006-01-02 15:04:05"
-
-	timestamp, err := time.Parse(layout, date+" "+t)
-	if err != nil {
-		slog.Warn("Unable to parse timestamp. setting default", "input", date+" "+t)
-		timestamp, _ = time.Parse(layout, "1776-07-04 11:11:11")
+func namedGroups(re *regexp.Regexp, text string) map[string]string {
+	matches := re.FindStringSubmatch(text)
+	if matches == nil {
+		return nil
 	}
-
-	lm.Timestamp = timestamp
-	lm.Level = level
-	lm.Message = message
-	lm.Component = cleanString(component)
-
-	return lm, nil
+	results := make(map[string]string)
+	for i, name := range re.SubexpNames() {
+		if i != 0 && name != "" {
+			results[name] = matches[i]
+		}
+	}
+	return results
 }
 
-func cleanString(field string) string {
-	if field[0] == '[' {
-		field = field[1:]
-	}
-
-	if field[len(field)-1] == ']' {
-		field = field[:len(field)-1]
-	}
-
-	return field
-}
+// func parseLog(msg string) (LogMessage, error) {
+// 	re := regexp.MustCompile(
+// 		`^(?P<date>\d{4}-\d{2}-\d{2})` +
+// 			`\s+` +
+// 			`(?P<time>\d{2}:\d{2}:\d{2})` +
+// 			`\s+` +
+// 			`(?P<level>\w+)` +
+// 			`(?:\s+\[(?P<component>[^\]]+)\])?` +
+// 			`\s+` +
+// 			`(?P<message>.+)$`)
+// 	groups := namedGroups(re, msg)
+// 	var lm LogMessage
+// 	lm.Raw = msg
+//
+// 	layout := "2006-01-02 15:04:05"
+//
+// 	dateTime := groups["date"] + " " + groups["time"]
+//
+// 	timestamp, err := time.Parse(layout, dateTime)
+// 	if err != nil {
+// 		slog.Warn("Unable to parse timestamp. setting default", "input", dateTime)
+// 		timestamp, _ = time.Parse(layout, "1776-07-04 11:11:11")
+// 	}
+//
+// 	lm.Timestamp = timestamp
+// 	lm.Level = groups["level"]
+// 	lm.Message = groups["message"]
+// 	lm.Component = groups["component"]
+//
+// 	return lm, nil
+// }
